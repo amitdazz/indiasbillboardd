@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Billboard Platform</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Supabase JS Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-gray-100 p-8">
+
+    <div class="max-w-6xl mx-auto">
+        <!-- Header -->
+        <h1 class="text-3xl font-bold text-gray-800 mb-6">Admin Dashboard 📊</h1>
+
+        <!-- Daily Stats Cards -->
+        <div class="grid grid-cols-3 gap-4 mb-8">
+            <div class="bg-white p-6 rounded-lg shadow">
+                <h3 class="text-gray-500 text-sm">Total Active Bids</h3>
+                <p class="text-2xl font-bold text-blue-600" id="totalBids">0</p>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow">
+                <h3 class="text-gray-500 text-sm">Pending Approvals</h3>
+                <p class="text-2xl font-bold text-orange-600" id="pendingApprovals">0</p>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow">
+                <h3 class="text-gray-500 text-sm">Total Revenue (₹)</h3>
+                <p class="text-2xl font-bold text-green-600" id="totalRevenue">₹0</p>
+            </div>
+        </div>
+
+        <!-- Bids & Approvals Table -->
+        <div class="bg-white rounded-lg shadow overflow-hidden">
+            <div class="bg-gray-800 text-white px-6 py-4">
+                <h2 class="font-bold">Live Bidding & Approvals</h2>
+            </div>
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-gray-200 text-gray-700">
+                        <th class="p-4 border-b">Brand Name</th>
+                        <th class="p-4 border-b">Billboard ID</th>
+                        <th class="p-4 border-b">Bid Amount (₹)</th>
+                        <th class="p-4 border-b">Status</th>
+                        <th class="p-4 border-b">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="bidsTableBody">
+                    <tr><td colspan="5" class="p-4 text-center text-gray-500">Loading data...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Link the JavaScript file -->
+    <script src="admin.js"></script>
+</body>
+</html>
