@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Admin — The Daily Indian Billboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<!-- Supabase JS SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --night: #0E0D0C; --panel: #17140F; --panel2: #1E1A13; --rule: #3A3227;
+    --amber: #F5A623; --vermilion: #E63912; --paper: #F3EFE7; --paper-dim: #B7AE9F;
+    color-scheme: dark;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    box-sizing: border-box;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--night); color: var(--paper);
+    font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased;
+    min-height: 100%;
+  }
+  .display { font-family: 'Anton', sans-serif; font-weight: 400; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+  :focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; }
+  a { color: var(--amber); }
+
+  .wrap { max-width: 880px; margin: 0 auto; padding: 40px 24px 80px; }
+  header.top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px; flex-wrap: wrap; gap: 12px; }
+  header.top h1 { font-size: 26px; margin: 0; }
+  header.top .sub { color: var(--paper-dim); font-size: 14px; margin: 4px 0 0; }
+  .logout-btn { background: none; border: 1px solid var(--rule); color: var(--paper-dim); border-radius: 6px;
+    padding: 8px 14px; font-size: 14px; cursor: pointer; }
+  .logout-btn:hover { color: var(--amber); border-color: var(--amber); }
+
+  .card { border: 1px solid var(--rule); background: var(--panel); border-radius: 10px; padding: 28px; margin-bottom: 28px; }
+  .card h2 { font-size: 20px; margin: 0 0 4px; }
+  .card .card-sub { color: var(--paper-dim); font-size: 13px; margin: 0 0 20px; }
+
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 560px) { .grid { grid-template-columns: 1fr; } }
+
+  .field { margin-bottom: 16px; }
+  .field label { display: block; font-size: 13px; color: var(--paper-dim); margin-bottom: 6px; }
+  .field input {
+    width: 100%; border-radius: 6px; border: 1px solid var(--rule); background: var(--panel2);
+    color: var(--paper); padding: 10px 12px; font-size: 14px; font-family: inherit; outline: none;
+  }
+  .field input:focus { border-color: var(--amber); }
+
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; border: none; border-radius: 6px;
+    padding: 11px 22px; font-size: 15px; font-weight: 500; cursor: pointer; text-decoration: none;
+  }
+  .btn-primary { background: var(--vermilion); color: var(--paper); }
+  .btn-primary:hover { opacity: .92; }
+  .btn-ghost { background: none; border: 1px solid var(--rule); color: var(--paper-dim); }
+  .btn-ghost:hover { color: var(--paper); border-color: var(--paper-dim); }
+  .btn-small { padding: 7px 12px; font-size: 13px; }
+  .btn-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+
+  .save-note { font-size: 13px; color: var(--amber); margin-left: 4px; }
+
+  table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+  th { text-align: left; font-size: 12px; color: var(--paper-dim); font-weight: 400; padding: 8px 8px; border-bottom: 1px solid var(--rule); }
+  td { padding: 6px 8px; border-bottom: 1px solid rgba(58,50,39,0.5); }
+  td input { width: 100%; background: var(--panel2); border: 1px solid var(--rule); border-radius: 4px; color: var(--paper);
+    padding: 6px 8px; font-size: 13px; font-family: inherit; }
+  td input.mono { font-family: 'JetBrains Mono', monospace; }
+  .row-del { background: none; border: none; color: var(--vermilion); cursor: pointer; font-size: 13px; padding: 4px 6px; }
+  .row-del:hover { text-decoration: underline; }
+
+  /* ---------- login screen ---------- */
+  .login-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
+  .login-box { max-width: 360px; width: 100%; border: 1px solid var(--rule); background: var(--panel);
+    border-radius: 10px; padding: 32px; text-align: center; }
+  .login-box h1 { font-size: 24px; margin: 0 0 6px; }
+  .login-box p { color: var(--paper-dim); font-size: 14px; margin: 0 0 20px; }
+  .login-box input { width: 100%; border-radius: 6px; border: 1px solid var(--rule); background: var(--panel2);
+    color: var(--paper); padding: 11px 14px; font-size: 15px; font-family: inherit; outline: none; margin-bottom: 12px; }
+  .login-box input:focus { border-color: var(--amber); }
+  .login-error { color: var(--vermilion); font-size: 13px; min-height: 18px; margin: 0 0 10px; }
+
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+  <!-- LOGIN SCREEN -->
+  <div class="login-wrap" id="login-screen">
+    <div class="login-box">
+      <h1 class="display">Admin</h1>
+      <p>The Daily Indian Billboard — enter the passcode to manage today's wall.</p>
+      <input type="password" id="passcode" placeholder="Passcode" autocomplete="off" />
+      <p class="login-error" id="login-error"></p>
+      <button class="btn btn-primary" style="width:100%" id="login-btn">Enter</button>
+    </div>
+  </div>
+
+  <!-- ADMIN DASHBOARD -->
+  <div class="wrap hidden" id="dashboard">
+    <header class="top">
+      <div>
+        <h1 class="display">Billboard admin</h1>
+        <p class="sub">Changes sync directly to your Supabase database.</p>
+      </div>
+      <button class="logout-btn" id="logout-btn">Log out</button>
+    </header>
+
+    <!-- CURRENT WINNER -->
+    <div class="card">
+      <h2>Today's winner</h2>
+      <p class="card-sub">What shows on the big billboard right now.</p>
+      <div class="grid">
+        <div class="field"><label>Brand name</label><input id="a-brandName" /></div>
+        <div class="field"><label>Bid amount (₹)</label><input id="a-bidAmount" type="number" class="mono" /></div>
+        <div class="field"><label>Website URL</label><input id="a-websiteUrl" /></div>
+        <div class="field"><label>Logo URL</label><input id="a-logoUrl" /></div>
+      </div>
+      <div class="field"><label>Tagline</label><input id="a-tagline" maxlength="90" /></div>
+    </div>
+
+    <!-- WALL HISTORY -->
+    <div class="card">
+      <h2>Wall history</h2>
+      <p class="card-sub">Past days shown in the site's history table.</p>
+      <table id="history-table">
+        <thead>
+          <tr><th style="width:60px">Day</th><th>Brand</th><th>Handle</th><th style="width:110px">Bid (₹)</th><th style="width:40px"></th></tr>
+        </thead>
+        <tbody id="history-rows"></tbody>
+      </table>
+      <button class="btn btn-ghost btn-small" id="add-row-btn">+ Add day</button>
+    </div>
+
+    <!-- PRICING -->
+    <div class="card">
+      <h2>Pricing &amp; goal</h2>
+      <p class="card-sub">The rules shown in the footer and enforced by the bid form.</p>
+      <div class="grid">
+        <div class="field"><label>Minimum bid (₹)</label><input id="a-minBid" type="number" class="mono" /></div>
+        <div class="field"><label>Maximum bid cap (₹)</label><input id="a-maxBidCap" type="number" class="mono" /></div>
+      </div>
+      <div class="field"><label>Funding goal (₹)</label><input id="a-fundingGoal" type="number" class="mono" /></div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-primary" id="save-btn">Save changes</button>
+      <button class="btn btn-ghost" id="reset-btn">Reset to defaults</button>
+      <span class="save-note hidden" id="save-note">Saved to Supabase!</span>
+    </div>
+  </div>
+
+<script>
+  // --- SUPABASE CONFIGURATION ---
+  var SUPABASE_URL = 'https://tawkqcwzlbyrmjuzcezd.supabase.co';
+  var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRhd2txY3d6bGJ5cm1qdXpjZXpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAyNTExMTgsImV4cCI6MjEwNTgyNzExOH0.V5UvAkZwavw4uQPmxZBGUZELbhwYU5NB5MLXssmkZas';
+
+  var supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  
+  var SESSION_KEY = 'dib_admin_session';
+  var PASSCODE = 'amit123'; // Change to your preferred passcode
+
+  var DEFAULTS = {
+    currentWinner: {
+      brandName: 'Chai Point Express',
+      websiteUrl: 'https://chaipointexpress.example.com',
+      logoUrl: 'https://api.dicebear.com/7.x/shapes/svg?seed=chaipoint',
+      tagline: 'Hot chai, delivered before your Slack standup.',
+      bidAmount: 899
+    },
+    wallHistory: [
+      { day: 7, date: '16 Sep', brandName: 'Notion for Chaiwalas', handle: '@notionchai', winningBid: 1249 },
+      { day: 6, date: '17 Sep', brandName: 'Bandra Bagel Co.', handle: '@bandrabagel', winningBid: 749 },
+      { day: 5, date: '18 Sep', brandName: 'PixelKirana', handle: '@pixelkirana', winningBid: 1899 },
+      { day: 4, date: '19 Sep', brandName: 'Autowala Analytics', handle: '@autowalaAI', winningBid: 599 },
+      { day: 3, date: '20 Sep', brandName: 'Tiffin Track', handle: '@tiffintrack', winningBid: 999 },
+      { day: 2, date: '21 Sep', brandName: 'Loop Studio', handle: '@loop_hq', winningBid: 449 },
+      { day: 1, date: '22 Sep', brandName: "Founder's First Sip", handle: '@firstsipco', winningBid: 149 }
+    ],
+    fundingGoal: 300000,
+    minBid: 149,
+    maxBidCap: 2499
+  };
+
+  var DATA = JSON.parse(JSON.stringify(DEFAULTS));
+
+  // Load data from Supabase table: `billboard_config` (id = 1)
+  async function loadData() {
+    try {
+      var { data, error } = await supabaseClient
+        .from('billboard_config')
+        .select('*')
+        .eq('id', 1)
+        .single();
+
+      if (error || !data) {
+        console.warn('Could not load from Supabase, using defaults:', error);
+        return;
+      }
+
+      DATA = {
+        currentWinner: data.current_winner || DEFAULTS.currentWinner,
+        wallHistory: data.wall_history || DEFAULTS.wallHistory,
+        fundingGoal: data.funding_goal || DEFAULTS.fundingGoal,
+        minBid: data.min_bid || DEFAULTS.minBid,
+        maxBidCap: data.max_bid_cap || DEFAULTS.maxBidCap
+      };
+    } catch (e) {
+      console.error('Error fetching from Supabase:', e);
+    }
+  }
+
+  // ---------- Login gate ----------
+  var loginScreen = document.getElementById('login-screen');
+  var dashboard = document.getElementById('dashboard');
+
+  async function showDashboard() {
+    loginScreen.classList.add('hidden');
+    dashboard.classList.remove('hidden');
+    await loadData();
+    renderForm();
+  }
+
+  if (sessionStorage.getItem(SESSION_KEY) === 'ok') {
+    showDashboard();
+  }
+
+  document.getElementById('login-btn').addEventListener('click', attemptLogin);
+  document.getElementById('passcode').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') attemptLogin();
+  });
+  
+  function attemptLogin() {
+    var val = document.getElementById('passcode').value;
+    if (val === PASSCODE) {
+      sessionStorage.setItem(SESSION_KEY, 'ok');
+      showDashboard();
+    } else {
+      document.getElementById('login-error').textContent = 'Wrong passcode.';
+    }
+  }
+
+  document.getElementById('logout-btn').addEventListener('click', function () {
+    sessionStorage.removeItem(SESSION_KEY);
+    location.reload();
+  });
+
+  // ---------- Render form from DATA ----------
+  function renderForm() {
+    document.getElementById('a-brandName').value = DATA.currentWinner.brandName;
+    document.getElementById('a-bidAmount').value = DATA.currentWinner.bidAmount;
+    document.getElementById('a-websiteUrl').value = DATA.currentWinner.websiteUrl;
+    document.getElementById('a-logoUrl').value = DATA.currentWinner.logoUrl;
+    document.getElementById('a-tagline').value = DATA.currentWinner.tagline;
+
+    document.getElementById('a-minBid').value = DATA.minBid;
+    document.getElementById('a-maxBidCap').value = DATA.maxBidCap;
+    document.getElementById('a-fundingGoal').value = DATA.fundingGoal;
+
+    renderHistoryRows();
+  }
+
+  function renderHistoryRows() {
+    var tbody = document.getElementById('history-rows');
+    tbody.innerHTML = '';
+    var sorted = DATA.wallHistory.slice().sort(function (a, b) { return b.day - a.day; });
+    sorted.forEach(function (entry) {
+      var tr = document.createElement('tr');
+      tr.dataset.day = entry.day;
+      tr.innerHTML =
+        '<td><input class="mono row-day" type="number" value="' + entry.day + '"></td>' +
+        '<td><input class="row-brand" value="' + escapeHtml(entry.brandName) + '"></td>' +
+        '<td><input class="row-handle" value="' + escapeHtml(entry.handle) + '"></td>' +
+        '<td><input class="mono row-bid" type="number" value="' + entry.winningBid + '"></td>' +
+        '<td><button class="row-del" title="Remove day">✕</button></td>';
+      tr.querySelector('.row-del').addEventListener('click', function () {
+        tr.remove();
+      });
+      tbody.appendChild(tr);
+    });
+  }
+
+  document.getElementById('add-row-btn').addEventListener('click', function () {
+    var days = Array.from(document.querySelectorAll('.row-day')).map(function (i) { return Number(i.value) || 0; });
+    var nextDay = (days.length ? Math.max.apply(null, days) : 0) + 1;
+    var tbody = document.getElementById('history-rows');
+    var tr = document.createElement('tr');
+    tr.innerHTML =
+      '<td><input class="mono row-day" type="number" value="' + nextDay + '"></td>' +
+      '<td><input class="row-brand" placeholder="Brand name"></td>' +
+      '<td><input class="row-handle" placeholder="@handle"></td>' +
+      '<td><input class="mono row-bid" type="number" placeholder="0"></td>' +
+      '<td><button class="row-del" title="Remove day">✕</button></td>';
+    tr.querySelector('.row-del').addEventListener('click', function () { tr.remove(); });
+    tbody.insertBefore(tr, tbody.firstChild);
+  });
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  // ---------- Save / reset (Supabase sync) ----------
+  document.getElementById('save-btn').addEventListener('click', async function () {
+    var newWinner = {
+      brandName: document.getElementById('a-brandName').value.trim() || DEFAULTS.currentWinner.brandName,
+      websiteUrl: document.getElementById('a-websiteUrl').value.trim() || DEFAULTS.currentWinner.websiteUrl,
+      logoUrl: document.getElementById('a-logoUrl').value.trim() || DEFAULTS.currentWinner.logoUrl,
+      tagline: document.getElementById('a-tagline').value.trim() || DEFAULTS.currentWinner.tagline,
+      bidAmount: Number(document.getElementById('a-bidAmount').value) || DEFAULTS.currentWinner.bidAmount
+    };
+
+    var rows = Array.from(document.querySelectorAll('#history-rows tr'));
+    var newHistory = rows.map(function (tr) {
+      return {
+        day: Number(tr.querySelector('.row-day').value) || 0,
+        date: '',
+        brandName: tr.querySelector('.row-brand').value.trim(),
+        handle: tr.querySelector('.row-handle').value.trim(),
+        winningBid: Number(tr.querySelector('.row-bid').value) || 0
+      };
+    }).filter(function (r) { return r.brandName; });
+
+    DATA = {
+      currentWinner: newWinner,
+      wallHistory: newHistory.length ? newHistory : DATA.wallHistory,
+      fundingGoal: Number(document.getElementById('a-fundingGoal').value) || DEFAULTS.fundingGoal,
+      minBid: Number(document.getElementById('a-minBid').value) || DEFAULTS.minBid,
+      maxBidCap: Number(document.getElementById('a-maxBidCap').value) || DEFAULTS.maxBidCap
+    };
+
+    // Upsert data to Supabase table
+    try {
+      var { error } = await supabaseClient
+        .from('billboard_config')
+        .upsert({
+          id: 1,
+          current_winner: DATA.currentWinner,
+          wall_history: DATA.wallHistory,
+          funding_goal: DATA.fundingGoal,
+          min_bid: DATA.minBid,
+          max_bid_cap: DATA.maxBidCap,
+          updated_at: new Date()
+        });
+
+      if (error) {
+        alert('Error saving to Supabase: ' + error.message);
+        return;
+      }
+
+      var note = document.getElementById('save-note');
+      note.classList.remove('hidden');
+      setTimeout(function () { note.classList.add('hidden'); }, 2500);
+    } catch (err) {
+      console.error('Unexpected error:', err);
+      alert('Failed to save changes.');
+    }
+  });
+
+  document.getElementById('reset-btn').addEventListener('click', async function () {
+    if (!confirm('Reset everything back to defaults in Supabase?')) return;
+    
+    DATA = JSON.parse(JSON.stringify(DEFAULTS));
+    
+    try {
+      await supabaseClient
+        .from('billboard_config')
+        .upsert({
+          id: 1,
+          current_winner: DATA.currentWinner,
+          wall_history: DATA.wallHistory,
+          funding_goal: DATA.fundingGoal,
+          min_bid: DATA.minBid,
+          max_bid_cap: DATA.maxBidCap,
+          updated_at: new Date()
+        });
+      renderForm();
+    } catch (err) {
+      console.error('Reset error:', err);
+    }
+  });
+</script>
+
+</body>
+</html>
