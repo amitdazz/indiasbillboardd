@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>India's Billboard - Live Bidding</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .billboard-container {
+            background: #ffffff;
+            border: 1px solid #ddd;
+            padding: 25px;
+            border-radius: 12px;
+            max-width: 450px;
+            width: 100%;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        .billboard-container img {
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        h2 {
+            margin-top: 0;
+            color: #333;
+            text-align: center;
+        }
+        .bid-info {
+            background: #f9f9f9;
+            padding: 10px 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            border-left: 4px solid #007bff;
+        }
+        .bid-info p {
+            margin: 8px 0;
+            color: #555;
+            font-size: 16px;
+        }
+        .form-group {
+            margin-bottom: 12px;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 14px;
+            color: #444;
+            font-weight: bold;
+        }
+        .submit-btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px;
+            width: 100%;
+            cursor: pointer;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+        .submit-btn:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+<div class="billboard-container">
+    <!-- Brand Banner Image -->
+    <img src="banner.jpg" alt="Brand Banner">
+
+    <h2>India's Billboard</h2>
+
+    <!-- Current & Highest Bid Details -->
+    <div class="bid-info">
+        <p><strong>Current Bid:</strong> ₹10,000</p>
+        <p><strong>Highest Bid:</strong> ₹15,000</p>
+    </div>
+
+    <!-- Bidding Form with File Upload (enctype zaroori hai) -->
+    <form action="https://formspree.io/f/mdekwpob" method="POST" enctype="multipart/form-data">
+        <div class="form-group">
+            <input type="text" name="name" placeholder="Aapka Naam" required>
+        </div>
+        <div class="form-group">
+            <input type="email" name="email" placeholder="Aapka Email Address" required>
+        </div>
+        <div class="form-group">
+            <input type="number" name="bid_amount" placeholder="Aapki Bid Amount (₹)" required>
+        </div>
+        
+        <!-- Yahan user apni image/banner upload karega -->
+        <div class="form-group">
+            <label for="brand_image">Upload Your Brand Image/Banner:</label>
+            <input type="file" name="brand_image" accept="image/*" required>
+        </div>
+
+        <button type="submit" class="submit-btn">Place Bid</button>
+    </form>
+</div>
+
+</body>
+</html>
