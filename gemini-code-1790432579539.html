@@ -1,0 +1,21 @@
+<div class="billboard-container" style="border: 1px solid #ccc; padding: 20px; border-radius: 8px; max-width: 400px; font-family: sans-serif;">
+    <!-- Brand Banner & Details -->
+    <img src="your-banner-image.jpg" alt="Brand Banner" style="width: 100%; border-radius: 4px;">
+    <h3>Brand Billboard Space</h3>
+    <p><strong>Current Bid:</strong> ₹10,000</p>
+    <p><strong>Highest Bid:</strong> ₹15,000</p>
+
+    <!-- Bidding Form (Endpoint added) -->
+    <form action="https://formspree.io/f/mdekwpob" method="POST">
+        <div style="margin-bottom: 10px;">
+            <input type="text" name="name" placeholder="Aapka Naam" required style="width: 100%; padding: 8px; box-sizing: border-box;">
+        </div>
+        <div style="margin-bottom: 10px;">
+            <input type="email" name="email" placeholder="Aapka Email" required style="width: 100%; padding: 8px; box-sizing: border-box;">
+        </div>
+        <div style="margin-bottom: 10px;">
+            <input type="number" name="bid_amount" placeholder="Aapki Bid Amount (₹)" required style="width: 100%; padding: 8px; box-sizing: border-box;">
+        </div>
+        <button type="submit" style="background: #007bff; color: white; border: none; padding: 10px 15px; width: 100%; cursor: pointer; border-radius: 4px;">Place Bid</button>
+    </form>
+</div>
