@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>India's Billboard - Admin Panel</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f7f6; margin: 0; padding: 20px; }
+        .container { max-width: 900px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        h2 { color: #333; text-align: center; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background: #007BFF; color: white; }
+        .login-box { text-align: center; margin-top: 50px; }
+        .login-box input { padding: 10px; font-size: 16px; width: 250px; }
+        .login-box button { padding: 10px 20px; font-size: 16px; background: #007BFF; color: white; border: none; cursor: pointer; }
+        .hidden { display: none; }
+        .btn-reset { background: #dc3545; color: white; border: none; padding: 6px 12px; cursor: pointer; border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+    <!-- 1. Simple Password Protection Box -->
+    <div id="loginSection" class="login-box">
+        <h2>Admin Login</h2>
+        <input type="password" id="adminPassword" placeholder="Enter Admin Password">
+        <br><br>
+        <button onclick="checkPassword()">Login</button>
+    </div>
+
+    <!-- 2. Admin Dashboard (Initially Hidden) -->
+    <div id="adminDashboard" class="container hidden">
+        <h2>Billboard Control Panel</h2>
+        <p>Yahan aap sabhi billboards ki live bidding status dekh sakte hain:</p>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Billboard Name/ID</th>
+                    <th>Highest Bid (₹)</th>
+                    <th>Winning Brand</th>
+                    <th>Email</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="billboardTableBody">
+                <!-- Data yahan JavaScript se aayega -->
+            </tbody>
+        </table>
+        <br>
+        <button onclick="location.reload()" style="padding: 8px 15px; cursor: pointer;">Refresh Data</button>
+    </div>
+
+    <!-- Supabase JS Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // Supabase Connection
+        const supabaseUrl = 'https://tawkqcwzlbyrmjuzcezd.supabase.co';
+        const supabaseKey = 'YAHAN_APNI_ANON_PUBLIC_KEY_PASTE_KREIN'; // Apni wali key yahan dalein
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+        // Simple Password Check function
+        function checkPassword() {
+            const pass = document.getElementById('adminPassword').value;
+            // Aap apna pasandida password yahan set kar sakte hain (abhi 'admin123' rakha hai)
+            if (pass === 'admin123') {
+                document.getElementById('loginSection').classList.add('hidden');
+                document.getElementById('adminDashboard').classList.remove('hidden');
+                loadBillboards();
+            } else {
+                alert('Galat password! Dobara koshish karein.');
+            }
+        }
+
+        // Billboards ka data load karne ka function
+        async function loadBillboards() {
+            let { data: billboards, error } = await supabase
+                .from('billboards')
+                .select('*');
+
+            if (error) {
+                alert('Data load karne mein error aayi.');
+                return;
+            }
+
+            const tableBody = document.getElementById('billboardTableBody');
+            tableBody.innerHTML = '';
+
+            billboards.forEach(b => {
+                tableBody.innerHTML += `
+                    <tr>
+                        <td>${b.id.substring(0, 8)}...</td>
+                        <td>₹ ${b.current_highest_bid}</td>
+                        <td>${b.current_brand_name || 'No Brand'}</td>
+                        <td>${b.current_brand_email || '-'}</td>
+                        <td><button class="btn-reset" onclick="resetBillboard('${b.id}')">Reset</button></td>
+                    </tr>
+                `;
+            });
+        }
+
+        // Billboard Reset karne ka function (Agar naya round shuru karna ho)
+        async function resetBillboard(id) {
+            if(confirm("Kya aap sach mein is billboard ko reset karna chahte hain?")) {
+                let { error } = await supabase
+                    .from('billboards')
+                    .update({
+                        current_highest_bid: 0,
+                        current_brand_name: null,
+                        current_brand_email: null,
+                        expiry_time: null
+                    })
+                    .eq('id', id);
+
+                if (error) {
+                    alert('Reset nahi ho paya.');
+                } else {
+                    alert('Billboard successfully reset ho gaya!');
+                    loadBillboards();
+                }
+            }
+        }
+    </script>
+</body>
+</html>
